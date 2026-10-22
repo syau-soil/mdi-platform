@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="MDI计算平台">
+<meta name="theme-color" content="#8B6F52">
+<title>设施土壤微生态失衡指数（MDI）计算平台</title>
+<style>
+  :root{
+    /* 截图友好：加深主色/正文/网格线，提高对比度 */
+    --bg:#F6F0E8; --card:#FFFFFF; --ink:#2A2118; --sub:#6B5B4B;
+    --main:#8B6F52; --main-l:#E8D8C3; --line:#C3B098;
+    --g:#157A3C; --g-bg:#157A3C; --y:#C06200; --y-bg:#C06200; --o:#D35400; --o-bg:#D35400; --r:#B71C1C; --r-bg:#B71C1C;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-weight:500;
+    font-family:"Microsoft YaHei","PingFang SC","Hiragino Sans GB","Source Han Sans SC",system-ui,sans-serif;
+    font-size:14px;line-height:1.6;-webkit-text-size-adjust:100%}
+  .wrap{max-width:1280px;margin:0 auto;padding:20px 18px 60px}
+  header{background:var(--card);border-radius:12px;padding:18px 22px;box-shadow:0 1px 3px rgba(0,0,0,.06);margin-bottom:16px}
+  h1{margin:0 0 6px;font-size:20px;color:var(--main)}
+  .lead{margin:0;color:var(--sub);font-size:13px}
+  .badge{display:inline-block;background:var(--main-l);color:var(--main);border-radius:20px;
+    padding:2px 10px;font-size:12px;margin-left:8px}
+  section{background:var(--card);border-radius:12px;padding:16px 20px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  h2{margin:0 0 4px;font-size:16px;color:var(--main);display:flex;align-items:center;gap:8px}
+  h2 .num{background:var(--main);color:#fff;width:22px;height:22px;border-radius:50%;
+    display:inline-flex;align-items:center;justify-content:center;font-size:13px;flex:none}
+  .hint{color:var(--sub);font-size:12.5px;margin:0 0 12px}
+  button{font-family:inherit;font-size:13px;border:none;border-radius:7px;padding:7px 14px;cursor:pointer;
+    background:var(--main);color:#fff;transition:.15s}
+  button:hover{filter:brightness(1.08)}
+  button.ghost{background:#fff;color:var(--main);border:1px solid var(--main)}
+  button.small{padding:4px 9px;font-size:12px}
+  button.danger{background:#fff;color:var(--r);border:1px solid var(--r)}
+  .btnrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+  textarea{width:100%;min-height:74px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;
+    font-family:Consolas,Menlo,monospace;font-size:12.5px;resize:vertical}
+  .scroll{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+  table{border-collapse:collapse;width:100%;font-size:13px;background:#fff}
+  th,td{border:1px solid var(--line);padding:6px 8px;text-align:center;white-space:nowrap;font-weight:600}
+  th{background:var(--main);color:#fff;font-weight:700;font-size:13px}
+  tbody tr:nth-child(even){background:#F4F7FB}
+  td.dim{background:var(--main-l);color:var(--main);font-weight:700;text-align:left}
+  td.name{text-align:left;font-weight:700}
+  input[type=text],input[type=email],input[type=password]{width:100%;min-width:62px;border:1px solid var(--line);border-radius:5px;
+    padding:3px 6px;font-family:inherit;font-size:12.5px;text-align:center;background:#FCFCFD}
+  input:focus{outline:2px solid var(--main);outline-offset:-1px;background:#fff}
+  #authBox input,#resetBox input{text-align:left;width:100%;margin-top:6px}
+  .pane{border:1px solid var(--line);border-radius:10px;padding:12px}
+  .rec{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+    border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-top:8px}
+  .rec-main{display:flex;flex-direction:column;text-align:left;gap:2px}
+  .rec-btns{display:flex;gap:6px;flex:none}
+  .note{font-size:11.5px;color:var(--sub);text-align:left;line-height:1.35}
+  .warn-note{color:var(--y);font-weight:600}
+  .tag{display:inline-block;padding:1px 7px;border-radius:4px;font-size:12px;font-weight:700}
+  .t-benefit{background:#1565C0;color:#fff}
+  .t-cost{background:#AD1457;color:#fff}
+  .t-range{background:#2E7D32;color:#fff}
+  /* 等级徽章：实底白字，截图中最醒目 */
+  .grade{font-weight:700;border-radius:5px;padding:3px 12px;display:inline-block;min-width:60px;color:#fff}
+  .g-g{background:var(--g-bg)}
+  .g-y{background:var(--y-bg)}
+  .g-r{background:var(--r-bg)}
+  .g-o{background:var(--o-bg)}
+  .mehi{font-weight:800;font-size:15px;color:var(--main)}
+  .hint{color:var(--sub);font-size:12.5px;margin:0 0 12px;font-weight:600}
+  .note{font-size:11.5px;color:var(--sub);text-align:left;line-height:1.35;font-weight:600}
+  h1{font-weight:800}
+  h2{font-weight:800}
+  .flex2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .flex4w{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .wgroup{border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+  .wgt-title{display:block;font-size:13px;color:var(--main);margin-bottom:6px}
+  .wrow{display:flex;align-items:center;gap:6px;margin-top:5px}
+  .wrow label{flex:1 1 auto;font-size:12px;color:var(--ink);line-height:1.3;min-width:0}
+  .wrow input{width:58px;flex:none;text-align:center}
+  .wpct{flex:none;width:48px;text-align:right;font-size:11.5px;color:var(--sub)}
+  .kv .wpct{display:block;width:auto;text-align:left}
+  details{margin-top:10px}
+  summary{cursor:pointer;font-size:13px;color:var(--main);font-weight:600;padding:4px 0}
+  .kv{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px}
+  footer{color:var(--sub);font-size:12px;line-height:1.7;background:var(--card);border-radius:12px;padding:14px 20px}
+  .ok{color:var(--g)} .err{color:var(--r)}
+  .msg{font-size:12.5px;margin:6px 0 0}
+
+  /* ============ 手机适配（≤768px 卡片式） ============ */
+  @media (max-width:768px){
+    .wrap{padding:12px 10px calc(40px + env(safe-area-inset-bottom))}
+    header{padding:14px 14px}
+    h1{font-size:17px;line-height:1.4}
+    .badge{display:block;margin:6px 0 0;width:fit-content}
+    .lead{font-size:12px}
+    section{padding:13px 13px;border-radius:10px}
+    h2{font-size:15px}
+    .hint{font-size:12px}
+    button{padding:10px 15px;font-size:14px;min-height:40px}
+    button.small{padding:6px 10px;font-size:13px;min-height:34px}
+    .btnrow{gap:8px}
+    .btnrow button{flex:1 1 auto;min-width:calc(50% - 4px)}
+    textarea{font-size:16px}
+    .kv{grid-template-columns:repeat(2,1fr);gap:8px}
+    .flex2{grid-template-columns:1fr}
+    .flex4w{grid-template-columns:1fr}
+
+    /* 表格转卡片 */
+    .scroll{overflow-x:visible;border:none;border-radius:0}
+    table{font-size:13px}
+    thead{display:none}
+    table,tbody,tr,td{display:block;width:100%}
+    tr{border:1px solid var(--line);border-radius:10px;margin:0 0 10px;padding:4px 10px;
+       background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+    td{border:none;border-bottom:1px dashed #EEF0F3;display:flex;align-items:center;gap:10px;
+       padding:7px 0;text-align:left;white-space:normal}
+    td:last-child{border-bottom:none}
+    td::before{content:attr(data-label);font-size:12px;font-weight:600;color:var(--sub);
+       flex:0 0 46%;line-height:1.3}
+    td.dim{background:transparent;color:var(--main);font-weight:700}
+    td input{flex:1 1 auto;min-width:0;text-align:right;font-size:15px;padding:7px 8px}
+    #authBox input,#resetBox input{font-size:15px;padding:9px 10px}
+    .rec{flex-direction:column;align-items:stretch}
+    .rec-btns button{flex:1 1 auto}
+    .note{font-size:11.5px;flex:1 1 auto}
+    .mehi{font-size:16px}
+    .grade{min-width:64px;text-align:center}
+    footer{font-size:12px;padding:12px 14px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>设施土壤微生态失衡指数（MDI）计算平台<span class="badge">本地计算 · 数据不上传</span></h1>
+  <p class="lead">本平台计算「设施土壤微生态失衡指数（MDI）」：四维 12 指标，效益型／成本型／最优区间型三类归一化，两层权重（维度 → 维度内指标）；<b>MDI 越小越健康</b>，按四级划分：健康 / 轻度失衡 / 中度失衡 / 重度失衡。支持批量导入样本。</p>
+</header>
+
+<section>
+  <h2><span class="num">1</span>导入数据</h2>
+  <p class="hint">电脑上可从 Excel 复制粘贴、或导入 CSV；手机上建议直接点「＋ 添加样本行」逐张卡片填写，或点「填入示例数据」先看效果。</p>
+  <textarea id="pasteBox" placeholder="（电脑端用）粘贴从 Excel 复制的数据，Tab 或逗号分隔"></textarea>
+  <div class="btnrow" style="margin-top:8px">
+    <button onclick="parsePaste()">解析粘贴</button>
+    <button class="ghost" onclick="document.getElementById('csvFile').click()">导入 CSV</button>
+    <input type="file" id="csvFile" accept=".csv,.txt" style="display:none" onchange="loadCsv(event)">
+    <button class="ghost" onclick="fillDemo()">填入示例数据</button>
+    <button class="ghost" onclick="downloadTemplate()">下载 CSV 模板（20 条示例）</button>
+    <button class="ghost" onclick="addRow()">＋ 添加样本行</button>
+    <button class="danger" onclick="clearRows()">清空</button>
+  </div>
+  <p class="msg" id="importMsg"></p>
+  <div class="scroll">
+    <table id="dataTable"><thead><tr id="dataHead"></tr></thead><tbody id="dataBody"></tbody></table>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">2</span>权重与阈值（均可修改）</h2>
+  <p class="hint">标准化：效益型 S=(x−劣)/(优−劣)；成本型 S=(优−x)/(优−劣)；区间型落在最优区间内记 1 分，区间外向最小值／最大值方向线性衰减至 0。权重可填分数或小数，两层各自自动归一化。</p>
+
+  <p style="font-weight:700;margin:0 0 6px;color:var(--main)">① 第一层 · 维度权重（4 个维度，决定 MDI 中各维度的相对重要性）</p>
+  <div class="kv" id="dimWeights"></div>
+
+  <p style="font-weight:700;margin:16px 0 6px;color:var(--main)">② 第二层 · 维度内指标权重（各维度内部归一化，决定维度分构成）</p>
+  <div class="flex4w" id="indWeights"></div>
+
+  <p style="font-weight:700;margin:16px 0 6px;color:var(--main)">③ 阈值参数</p>
+  <div class="scroll">
+    <table id="paramTable">
+      <thead><tr>
+        <th>维度</th><th>指标</th><th>类型</th><th>参数1</th><th>参数2</th><th>参数3</th><th>参数4</th>
+      </tr></thead>
+      <tbody id="paramBody"></tbody>
+    </table>
+  </div>
+  <p class="hint" style="margin-top:8px">「优」＝健康端参照值，「劣」＝失衡端参照值；区间型四列依次为最优下限／最优上限／最小值／最大值。所有阈值可按产区实测调整；B/F 与两类可培养菌默认按平板计数（CFU·g⁻¹）口径设定。</p>
+  <button class="ghost small" onclick="resetParams()">恢复默认阈值与权重</button>
+</section>
+
+<section>
+  <h2><span class="num">3</span>计算与结果</h2>
+  <div class="btnrow">
+    <button onclick="calculate()" style="font-size:15px;padding:11px 26px">▶ 运行计算</button>
+    <button class="ghost" onclick="exportCsv()">导出结果 CSV</button>
+  </div>
+  <p class="hint" style="margin:6px 0 0">等级（MDI，越小越健康）：健康 ≤ 0.30　｜　轻度失衡 0.30–0.45　｜　中度失衡 0.45–0.60　｜　重度失衡 &gt; 0.60<br><span style="font-weight:400">说明：指标标准分与维度分越大表示状态越好；综合指数 MDI 越小越健康。</span></p>
+  <p class="msg" id="calcMsg"></p>
+  <div class="scroll" style="margin-top:10px">
+    <table id="resTable" style="display:none">
+      <thead><tr id="resHead"></tr></thead><tbody id="resBody"></tbody>
+    </table>
+  </div>
+  <details id="detailBox" style="display:none">
+    <summary>展开查看各指标标准化过程分 S（0–1）</summary>
+    <div class="scroll" style="margin-top:8px">
+      <table id="detailTable"><thead><tr id="detailHead"></tr></thead><tbody id="detailBody"></tbody></table>
+    </div>
+  </details>
+</section>
+
+<section>
+  <h2><span class="num">4</span>云服务（可选 · 云端保存评价记录）</h2>
+  <p class="hint"><b>默认不上传任何数据。</b>本 MDI 平台默认<b>未绑定云端项目</b>，下方登录/保存在绑定专属云服务前不可用；核心计算与导出完全本地运行。绑定后，仅在你登录并主动点「保存到云端」时，数据才存入你的账户（按账户隔离）。</p>
+  <p class="msg" id="cloudStatus"></p>
+
+  <div id="authBox">
+    <div class="flex2">
+      <div class="pane">
+        <b>① 密码登录</b>
+        <input id="pwdEmail" type="email" placeholder="邮箱">
+        <input id="pwdPwd" type="password" placeholder="密码">
+        <div style="margin-top:10px;display:flex;gap:6px">
+          <button class="small" onclick="loginWithPassword()">登录</button>
+          <button class="ghost small" onclick="startReset()">忘记密码</button>
+        </div>
+        <div id="resetBox" style="display:none">
+          <input id="resetCode" placeholder="重置验证码">
+          <input id="resetPwd" type="password" placeholder="新密码">
+          <div style="margin-top:8px"><button class="small" onclick="submitReset()">提交新密码</button></div>
+        </div>
+      </div>
+      <div class="pane">
+        <b>② 验证码登录 / 注册</b>
+        <input id="otpEmail" type="email" placeholder="邮箱">
+        <div style="display:flex;gap:6px;margin-top:6px">
+          <input id="otpCode" placeholder="验证码">
+          <button class="ghost small" style="flex:0 0 auto" onclick="sendEmailCode()">获取验证码</button>
+        </div>
+        <input id="otpNewPwd" type="password" placeholder="新用户请设置密码（老用户留空）">
+        <div style="margin-top:10px"><button class="small" onclick="submitEmailOtp()">登录 / 注册</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="userBox" style="display:none">
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <span class="note" id="userEmail"></span>
+      <button class="ghost small" onclick="doSignOut()">退出登录</button>
+    </div>
+    <div class="btnrow" style="margin-top:10px">
+      <button onclick="saveRecord()">保存到云端</button>
+      <button class="ghost" onclick="loadRecords()">读取云端记录</button>
+    </div>
+    <div id="recordList"></div>
+  </div>
+</section>
+
+<footer>
+  <b>使用说明</b><br>
+  · <b>计算全部在浏览器内完成，默认不上传任何数据</b>；只有你在第 4 节登录并主动点「保存到云端」时，数据才会存入你自己的云端账户（按账户隔离，他人不可见）。手机上可用浏览器「添加到主屏幕」当 App 用。<br>
+  · 矿质氮请填「硝态氮 + 铵态氮」合计值；关键酶活性（N-乙酰-β-D-氨基葡萄糖苷酶 NAG）请填其活性（nmol·g⁻¹·h⁻¹）。<br>
+  · 「优」为健康端参照值、「劣」为失衡端参照值，可按产区与项目实测调整；B/F、可培养有益菌、拮抗活性有益菌默认按平板计数（CFU·g⁻¹）口径设定，若改用测序相对丰度口径请同步调整阈值。<br>
+  · 权重分两层：先定 4 个维度的权重，再定各维度内指标的权重；两层分别自动归一化，默认等权。维度分 = 维度内指标加权平均（越大表示状态越好）；MDI 为对应的失衡指数（越小越健康），分四级：健康 / 轻度失衡 / 中度失衡 / 重度失衡。
+</footer>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="_c.js"></script>
+</body>
+</html>
