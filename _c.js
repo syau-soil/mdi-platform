@@ -423,11 +423,12 @@ async function bootCloud(){
     setCloudMsg('<span class="ok">云服务已就绪（Supabase）。</span>');
   }
   try{
-    const { data: session, error } = await cloud.auth.getSession();
-    renderAuth(error ? null : (session && session.user) ? session.user : null);
+    const session = await currentSession();
+    renderAuth(session && session.user ? session.user : null);
   }catch(e){ renderAuth(null); }
   try{
     cloud.auth.onAuthStateChange((ev, session) => {
+      if(authSwitching && ev === 'SIGNED_OUT') return;   // 设密码会撤销会话，重登期间先不踢界面
       const u = session && session.user ? session.user : null;
       renderAuth(u);
       if(ev === 'SIGNED_OUT'){ $('recordList').innerHTML = ''; pendingEmailOtp = null; resetChallenge = null; }
@@ -436,10 +437,20 @@ async function bootCloud(){
   }catch(e){ /* 状态监听不可用时忽略，不影响手动登录 */ }
 }
 
+let authSwitching = false;   // 设密码 / 重登窗口期：期间忽略 SIGNED_OUT，避免界面闪退
+
+/* 兼容 Supabase JS v2 的 getSession：v2 返回 { data:{ session } }，v1 返回 data 即会话 */
+async function currentSession(){
+  if(!cloud) return null;
+  const { data, error } = await cloud.auth.getSession();
+  if(error || !data) return null;
+  return data.session || (data.user ? data : null);
+}
+
 async function requireSession(){
   if(!cloud){ setCloudMsg('<span class="err">云服务未初始化，无法进行云端操作。</span>'); return null; }
-  const { data: session, error } = await cloud.auth.getSession();
-  if(error || !session){
+  const session = await currentSession();
+  if(!session){
     setCloudMsg('<span class="err">请先登录，再保存或读取云端记录。</span>');
     renderAuth(null);
     return null;
@@ -482,9 +493,9 @@ async function submitReset(){
   if(done.error){ setCloudMsg('<span class="err">' + esc(cloudErr(done.error)) + '</span>'); return; }
   $('resetBox').style.display = 'none';
   $('resetCode').value = ''; $('resetPwd').value = '';
-  const { data: session } = await cloud.auth.getSession();
+  const session = await currentSession();
   renderAuth(session && session.user ? session.user : null);
-  setCloudMsg('<span class="ok">密码已重置。</span>');
+  setCloudMsg(session && session.user ? '<span class="ok">密码已重置。</span>' : '<span class="ok">密码已重置，请用新密码在左端登录。</span>');
 }
 
 /* ③ 邮箱验证码登录 / 注册（Supabase：signInWithOtp + verifyOtp） */
@@ -517,18 +528,21 @@ async function submitEmailOtp(){
   if(done.error){ setCloudMsg('<span class="err">' + esc(cloudErr(done.error)) + '</span>'); return; }
   let note = '';
   if(password){
-    const upd = await cloud.auth.updateUser({ password });
-    if(upd.error){
-      note = '（密码设置失败：' + esc(cloudErr(upd.error)) + '，本次不影响使用）';
-    }else{
-      // 更新密码会使当前会话失效：用刚设置的密码重新登录，重建会话后再进界面
-      const re = await cloud.auth.signInWithPassword({ email: pending.email, password });
-      if(re.error){ setCloudMsg('<span class="err">密码已设置，但自动重登失败，请改用左端「密码登录」：' + esc(cloudErr(re.error)) + '</span>'); renderAuth(null); return; }
-    }
+    authSwitching = true;
+    try{
+      const upd = await cloud.auth.updateUser({ password });
+      if(upd.error){
+        note = '（密码设置失败：' + esc(cloudErr(upd.error)) + '，本次不影响使用）';
+      }else{
+        // 更新密码会使当前会话失效：用刚设置的密码重新登录，重建会话后再进界面
+        const re = await cloud.auth.signInWithPassword({ email: pending.email, password });
+        if(re.error){ setCloudMsg('<span class="err">密码已设置，但自动重登失败，请改用左端「密码登录」：' + esc(cloudErr(re.error)) + '</span>'); renderAuth(null); return; }
+      }
+    }finally{ authSwitching = false; }
   }
   pendingEmailOtp = null;
   $('otpCode').value = ''; $('otpNewPwd').value = '';
-  const { data: session } = await cloud.auth.getSession();
+  const session = await currentSession();
   renderAuth(session && session.user ? session.user : null);
   if(session && session.user) setCloudMsg('<span class="ok">登录成功' + note + '。</span>');
   else setCloudMsg('<span class="err">会话已失效，请重新登录（若已设密码，可用左端密码登录）。</span>');
