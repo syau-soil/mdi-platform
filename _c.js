@@ -515,16 +515,23 @@ async function submitEmailOtp(){
   setCloudMsg('正在验证…');
   const done = await cloud.auth.verifyOtp({ email: pending.email, token, type: 'email' });
   if(done.error){ setCloudMsg('<span class="err">' + esc(cloudErr(done.error)) + '</span>'); return; }
-  // 新用户若设置了密码，顺手写入（之后可用「密码登录」）
+  let note = '';
   if(password){
     const upd = await cloud.auth.updateUser({ password });
-    if(upd.error){ setCloudMsg('<span class="err">登录成功，但设置密码失败：' + esc(cloudErr(upd.error)) + '</span>'); return; }
+    if(upd.error){
+      note = '（密码设置失败：' + esc(cloudErr(upd.error)) + '，本次不影响使用）';
+    }else{
+      // 更新密码会使当前会话失效：用刚设置的密码重新登录，重建会话后再进界面
+      const re = await cloud.auth.signInWithPassword({ email: pending.email, password });
+      if(re.error){ setCloudMsg('<span class="err">密码已设置，但自动重登失败，请改用左端「密码登录」：' + esc(cloudErr(re.error)) + '</span>'); renderAuth(null); return; }
+    }
   }
   pendingEmailOtp = null;
   $('otpCode').value = ''; $('otpNewPwd').value = '';
   const { data: session } = await cloud.auth.getSession();
   renderAuth(session && session.user ? session.user : null);
-  setCloudMsg('<span class="ok">登录成功。</span>');
+  if(session && session.user) setCloudMsg('<span class="ok">登录成功' + note + '。</span>');
+  else setCloudMsg('<span class="err">会话已失效，请重新登录（若已设密码，可用左端密码登录）。</span>');
 }
 
 async function doSignOut(){
