@@ -186,7 +186,7 @@
     <button onclick="calculate()" style="font-size:15px;padding:11px 26px">▶ 运行计算</button>
     <button class="ghost" onclick="exportCsv()">导出结果 CSV</button>
   </div>
-  <p class="hint" style="margin:6px 0 0">等级（MDI，越小越健康）：健康 ≤ 0.30　｜　轻度失衡 0.30–0.45　｜　中度失衡 0.45–0.60　｜　重度失衡 &gt; 0.60<br><span style="font-weight:400">说明：指标标准分与维度分越大表示状态越好；综合指数 MDI 越小越健康。</span></p>
+  <p class="hint" style="margin:6px 0 0">等级（MDI，越小越健康）：健康 ≤ 0.25　｜　轻度失衡 0.25–0.50　｜　中度失衡 0.50–0.75　｜　重度失衡 &gt; 0.75<br><span style="font-weight:400">说明：指标标准分与维度分越大表示状态越好；综合指数 MDI 越小越健康。</span></p>
   <p class="msg" id="calcMsg"></p>
   <div class="scroll" style="margin-top:10px">
     <table id="resTable" style="display:none">
@@ -203,7 +203,7 @@
 
 <section>
   <h2><span class="num">4</span>云服务（可选 · 云端保存评价记录）</h2>
-  <p class="hint"><b>默认不上传任何数据。</b>本 MDI 平台默认<b>未绑定云端项目</b>，下方登录/保存在绑定专属云服务前不可用；核心计算与导出完全本地运行。绑定后，仅在你登录并主动点「保存到云端」时，数据才存入你的账户（按账户隔离）。</p>
+  <p class="hint"><b>默认不上传任何数据。</b>本 MDI 平台已绑定云端项目（Supabase），下方登录/保存可直接使用；不登录时核心计算与导出完全本地运行。仅在你登录并主动点「保存到云端」时，数据才存入你的账户（按账户隔离，他人不可见）。</p>
   <p class="msg" id="cloudStatus"></p>
 
   <div id="authBox">

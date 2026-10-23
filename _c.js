@@ -310,7 +310,7 @@ function calculate(){
     let mehi = 0;
     DIMS.forEach((d, k) => { mehi += dwNorm[k] * D[d.key]; });
     const mdi = 1 - mehi;   // 失衡指数（越小越健康）
-    const grade = mdi <= 0.30 ? {t:'健康', c:'g-g'} : (mdi <= 0.45 ? {t:'轻度失衡', c:'g-y'} : (mdi <= 0.60 ? {t:'中度失衡', c:'g-o'} : {t:'重度失衡', c:'g-r'}));
+    const grade = mdi <= 0.25 ? {t:'健康', c:'g-g'} : (mdi <= 0.50 ? {t:'轻度失衡', c:'g-y'} : (mdi <= 0.75 ? {t:'中度失衡', c:'g-o'} : {t:'重度失衡', c:'g-r'}));
     results.push({name:s.name, S, D, mehi, mdi, grade, miss});
   });
 
@@ -339,10 +339,10 @@ function calculate(){
 
   document.getElementById('resTable').style.display = '';
   document.getElementById('detailBox').style.display = '';
-  const n0 = results.filter(r => r.mdi <= 0.30).length;
-  const n1 = results.filter(r => r.mdi > 0.30 && r.mdi <= 0.45).length;
-  const n2 = results.filter(r => r.mdi > 0.45 && r.mdi <= 0.60).length;
-  const n3 = results.filter(r => r.mdi > 0.60).length;
+  const n0 = results.filter(r => r.mdi <= 0.25).length;
+  const n1 = results.filter(r => r.mdi > 0.25 && r.mdi <= 0.50).length;
+  const n2 = results.filter(r => r.mdi > 0.50 && r.mdi <= 0.75).length;
+  const n3 = results.filter(r => r.mdi > 0.75).length;
   msgEl.innerHTML = `<span class="ok">计算完成：共 ${results.length} 个样本 —— 健康 ${n0}、轻度失衡 ${n1}、中度失衡 ${n2}、重度失衡 ${n3}。</span>` +
     (missingCount ? ` <span class="err">（${missingCount} 处缺值按 0 分计，已标注）</span>` : '');
 }
